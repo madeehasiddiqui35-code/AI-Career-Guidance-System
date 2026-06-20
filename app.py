@@ -165,5 +165,101 @@ if page == "Dashboard":
         else:
             st.success("No major skill gaps detected")
 
+elif page == "Resume Analyzer":
+    st.title("Resume Analyzer")
+
+    st.write("Paste your resume or upload a file")
+
+    uploaded_file = st.file_uploader("Upload Resume", type=["pdf"])
+
+    resume_text = ""
+    
+    if uploaded_file is not None:
+
+        if uploaded_file.type == "text/plain":
+
+            resume_text = uploaded_file.read().decode("utf-8")
+
+        elif uploaded_file.type == "application/pdf":
+
+            reader = PdfReader(uploaded_file)
+
+            for page in reader.pages:
+
+                text = page.extract_text()
+
+                if text:
+                    resume_text += text
+
+        st.text_area(
+            "Resume Content",
+            resume_text,
+            height=250
+        )
+
+    else:
+
+        resume_text = st.text_area(
+            "Paste your resume here",
+            height=250      
+        )
+
+    if st.button("Analyze Resume"):
+
+        if resume_text.strip() == "":
+
+            st.warning("Please upload or paste your resume.")
+
+        else:
+
+            with st.spinner("Analyzing Resume..."):
+
+                response = client.chat.completions.create(
+
+                    model="llama-3.3-70b-versatile",
+
+                    messages=[
+
+                        {
+
+                            "role":"system",
+
+                            "content":"""
+
+                            You are an expert Resume Reviewer.
+
+                            Analyze the resume and give:
+
+                            1. Overall Score out of 100
+                            2. Strengths
+                            3. Weaknesses
+                            4. Missing Skills
+                            5. Suggestions to improve
+
+                            Keep the response simple.
+
+                            """
+
+                        },
+
+                        {
+
+                            "role":"user",
+
+                            "content":resume_text
+
+                        }
+
+                    ]
+
+                )
+
+            answer = response.choices[0].message.content
+
+            st.subheader("AI Resume Analysis")
+
+            st.write(answer)
+
+
 
      
