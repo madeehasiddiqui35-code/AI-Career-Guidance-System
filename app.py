@@ -1,11 +1,19 @@
-import streamlit as st 
+import streamlit as st
 from PyPDF2 import PdfReader
-from groq import Groq
 
-client = Groq(
-    api_key = st.secrets["GROQ_API_KEY"]
-)
+try:
+    from groq import Groq
 
+    if "GROQ_API_KEY" in st.secrets:
+        client = Groq(
+            api_key=st.secrets["GROQ_API_KEY"]
+        )
+    else:
+        client = None
+
+except:
+    client = None
+    
 st.sidebar.title("SIDEBAR")
 
 page = st.sidebar.radio(
@@ -204,21 +212,21 @@ elif page == "Career Roadmap":
         st.write("You are internship-ready")
 
 elif page == "Resume Analyzer":
+
     st.title("Resume Analyzer")
 
     st.write("Paste your resume or upload a file")
 
-    uploaded_file = st.file_uploader("Upload Resume", type=["pdf"])
+    uploaded_file = st.file_uploader(
+        "Upload Resume",
+        type=["pdf"]
+    )
 
     resume_text = ""
-    
+
     if uploaded_file is not None:
 
-        if uploaded_file.type == "text/plain":
-
-            resume_text = uploaded_file.read().decode("utf-8")
-
-        elif uploaded_file.type == "application/pdf":
+        if uploaded_file.type == "application/pdf":
 
             reader = PdfReader(uploaded_file)
 
@@ -227,6 +235,7 @@ elif page == "Resume Analyzer":
                 text = page.extract_text()
 
                 if text:
+
                     resume_text += text
 
         st.text_area(
@@ -239,64 +248,76 @@ elif page == "Resume Analyzer":
 
         resume_text = st.text_area(
             "Paste your resume here",
-            height=250      
+            height=250
         )
 
     if st.button("Analyze Resume"):
 
         if resume_text.strip() == "":
 
-            st.warning("Please upload or paste your resume.")
+            st.warning(
+                "Please upload or paste your resume."
+            )
 
         else:
 
             with st.spinner("Analyzing Resume..."):
 
-                response = client.chat.completions.create(
+                if client is None:
 
-                    model="llama-3.3-70b-versatile",
+                    st.error(
+                        "Groq API Key not found. Please add GROQ_API_KEY in Streamlit Secrets."
+                    )
 
-                    messages=[
+                else:
 
-                        {
+                    response = client.chat.completions.create(
 
-                            "role":"system",
+                        model="llama-3.3-70b-versatile",
 
-                            "content":"""
+                        messages=[
 
-                            You are an expert Resume Reviewer.
+                            {
 
-                            Analyze the resume and give:
+                                "role":"system",
 
-                            1. Overall Score out of 100
-                            2. Strengths
-                            3. Weaknesses
-                            4. Missing Skills
-                            5. Suggestions to improve
+                                "content":"""
 
-                            Keep the response simple.
+You are an expert Resume Reviewer.
 
-                            """
+Analyze the resume and give:
 
-                        },
+1. Overall Score out of 100
+2. Strengths
+3. Weaknesses
+4. Missing Skills
+5. Suggestions to improve
 
-                        {
+Keep the response simple.
 
-                            "role":"user",
+"""
 
-                            "content":resume_text
+                            },
 
-                        }
+                            {
 
-                    ]
+                                "role":"user",
 
-                )
+                                "content":resume_text
 
-            answer = response.choices[0].message.content
+                            }
 
-            st.subheader("AI Resume Analysis")
+                        ]
 
-            st.write(answer)
+                    )
+
+                    answer = response.choices[0].message.content
+
+                    st.subheader(
+                        "AI Resume Analysis"
+                    )
+
+                    st.write(answer)
 
 elif page == "Interview Coach":
     st.title("Interview Coach")
