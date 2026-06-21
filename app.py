@@ -1,10 +1,20 @@
 import streamlit as st 
+from PyPDF2 import PdfReader
+from groq import Groq
+
+client = Groq(
+    api_key = st.secrets["GROQ_API_KEY"]
+)
 
 st.sidebar.title("SIDEBAR")
 
 page = st.sidebar.radio(
     "Navigate",[
-        "Dashboard"
+        "Dashboard",
+        "Skill Gap Analysis",
+        "Career Roadmap",
+        "Resume Analyzer",
+        "Interview Coach"
    ]
     )
 
@@ -164,6 +174,34 @@ if page == "Dashboard":
                 st.write(skill)
         else:
             st.success("No major skill gaps detected")
+elif page == "Skill Gap Analysis":
+    st.title("Skill Gap Analysis")
+
+    missing_skills=st.session_state.get("missing_skills", [])
+
+    st.subheader("Skill Gap Analysis")
+    if missing_skills:
+        for skill in missing_skills:
+            st.write(skill)
+    else:
+        st.write("No major skill gaps detected")
+                        
+elif page == "Career Roadmap":
+    st.title("Career Roadmap")
+
+    missing_skills = st.session_state.get("missing_skills", [])
+    
+    st.subheader("Your Personalized Roadmap")
+
+    for step_number, skill in enumerate(missing_skills, start=1):
+        st.write(f"Step {step_number}: Learn {skill}")
+
+    if missing_skills:
+        st.write(f"Step {len(missing_skills)+1}: Build portfolio projects")
+        st.write(f"Step {len(missing_skills)+2}: Apply for internships")
+
+    else:
+        st.write("You are internship-ready")
 
 elif page == "Resume Analyzer":
     st.title("Resume Analyzer")
@@ -260,6 +298,42 @@ elif page == "Resume Analyzer":
 
             st.write(answer)
 
+elif page == "Interview Coach":
+    st.title("Interview Coach")
+
+    role = st.selectbox(
+        "Select Role", [
+        "Data Science",
+        "AI Engineer",
+        "Software Engineer",
+        "Web Developer"
+            ])
+
+    if st.button("Generate Questions"):
+
+        questions = {
+            "Data Science": ["What is overfitting?",
+            "Explain mean vs median",
+            "What is SQL join?"
+            ],
+            "AI Engineer":[
+            "What is neural network?",
+            "What is backpropagation?",
+            "What is deep learning?"
+            ],
+            "Software Engineer": [
+                "What is OOP?",
+                "What is recursion?",
+                "What is Git?"
+            ],
+            "Web Developer": [
+                "What is HTML vs CSS?",
+                "What is React?",
+                "What is DOM?"
+            ] }
+        
+        for q in questions[role]:
+            st.write(q)
 
 
      
