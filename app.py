@@ -22,7 +22,9 @@ page = st.sidebar.radio(
         "Skill Gap Analysis",
         "Career Roadmap",
         "Resume Analyzer",
-        "Interview Coach"
+        "Interview Coach",
+         "Certification Tracker",
+        "Learning Resources"
    ]
     )
 
@@ -356,5 +358,149 @@ elif page == "Interview Coach":
         for q in questions[role]:
             st.write(q)
 
+elif page == "Certification Tracker":
+    st.title("Certification Tracker")
 
-     
+    goal = st.session_state.get("goal", "")
+
+    certification = st.text_input("Enter completed certifications")
+    
+    certification_list = [
+        c.strip().lower()
+        for c in certification.split(",")
+        if c.strip()
+    ]
+        
+    st.subheader("Completed Certifications")
+
+    for cert in certification_list:
+        st.write(cert)
+
+    st.write("Total Certifications:", len(certification_list))
+
+    recommended_certs = {
+        "Data Science": [
+            "google data analytics",
+            "ibm data science",
+            "microsoft data analyst"
+        ],
+
+        "AI Engineer": [
+            "tensorflow developer",
+            "deep learning specialization",
+            "generative ai certification"
+        ],
+
+        "Software Engineer": [
+            "aws cloud practitioner",
+            "github foundations",
+            "oracle java certification"
+        ],
+
+        "Web Developer": [
+            "meta front-end developer",
+            "javascript certification",
+            "responsive web design"
+        ]
+    }    
+
+    goal_recommendations = recommended_certs.get(goal, [])
+
+    st.subheader("Recommended Certifications")
+
+    for c in goal_recommendations:
+        if c not in certification_list:
+            st.write(c)
+
+elif page == "Learning Resources":
+    st.title("Learning Resources")
+
+    goal = st.session_state.get("goal", "")
+
+    if not goal:
+        st.warning("No goal exists")
+
+    else:
+        resources = {
+
+    "Data Science": [
+        {
+            "name": "Python for Data Science",
+            "type": "Course",
+            "description": "Learn Python fundamentals for data analysis and machine learning."
+        },
+        {
+            "name": "SQL Tutorial",
+            "type": "Course",
+            "description": "Learn database querying and data management using SQL."
+        },
+        {
+            "name": "Machine Learning Specialization",
+            "type": "Course",
+            "description": "Understand supervised and unsupervised machine learning concepts."
+        }
+    ],
+
+    "AI Engineer": [
+        {
+            "name": "Deep Learning Specialization",
+            "type": "Course",
+            "description": "Learn neural networks, CNNs, and deep learning fundamentals."
+        },
+        {
+            "name": "TensorFlow Documentation",
+            "type": "Documentation",
+            "description": "Official guide for building AI applications with TensorFlow."
+        },
+        {
+            "name": "Prompt Engineering Guide",
+            "type": "Learning Guide",
+            "description": "Learn how to effectively interact with Large Language Models."
+        }
+    ],
+
+    "Software Engineer": [
+        {
+            "name": "Data Structures & Algorithms",
+            "type": "Course",
+            "description": "Master problem-solving and coding interview concepts."
+        },
+        {
+            "name": "Git & GitHub",
+            "type": "Course",
+            "description": "Learn version control and collaborative software development."
+        },
+        {
+            "name": "System Design Basics",
+            "type": "Course",
+            "description": "Understand scalable software architecture and design principles."
+        }
+    ],
+
+    "Web Developer": [
+        {
+            "name": "HTML & CSS Fundamentals",
+            "type": "Course",
+            "description": "Learn the foundations of web development."
+        },
+        {
+            "name": "JavaScript Tutorial",
+            "type": "Course",
+            "description": "Master JavaScript for interactive web applications."
+        },
+        {
+            "name": "React Documentation",
+            "type": "Documentation",
+            "description": "Official React guide for building modern front-end applications."
+        }
+    ]
+}
+        recommended_resources = resources.get(goal, [])
+
+        for resource in recommended_resources:
+            st.write("Resource:", resource["name"])
+            st.write("Type:", resource["type"])
+            st.write(resource["description"])
+            st.divider()
+
+    
