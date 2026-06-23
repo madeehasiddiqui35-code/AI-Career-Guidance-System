@@ -7,9 +7,16 @@ if "logged_in" not in st.session_state:
 
     st.session_state.logged_in=False
 
-client = Groq(
-    api_key = st.secrets["GROQ_API_KEY"]
-)
+try:
+    if "GROQ_API_KEY" in st.secrets:
+        client = Groq(
+            api_key=st.secrets["GROQ_API_KEY"]
+        )
+    else:
+        client = None
+
+except Exception:
+    client = None
 
 st.set_page_config(
     page_title="AI Career Guidance System",
@@ -450,101 +457,55 @@ elif page == "Career Match":
             st.write(advice)
      
 
-elif page == "Resume Analyzer":
-    st.title("Resume Analyzer")
+if st.button("Analyze Resume"):
 
-    st.write("Paste your resume or upload a file")
+    if resume_text.strip() == "":
+        st.warning("Please upload or paste your resume.")
 
-    uploaded_file = st.file_uploader("Upload Resume", type=["pdf"])
-
-    resume_text = ""
-    
-    if uploaded_file is not None:
-
-        if uploaded_file.type == "text/plain":
-
-            resume_text = uploaded_file.read().decode("utf-8")
-
-        elif uploaded_file.type == "application/pdf":
-
-            reader = PdfReader(uploaded_file)
-
-            for page in reader.pages:
-
-                text = page.extract_text()
-
-                if text:
-                    resume_text += text
-
-        st.text_area(
-            "Resume Content",
-            resume_text,
-            height=250
+    elif client is None:
+        st.error(
+            "Groq API Key not found. Add GROQ_API_KEY in Streamlit Secrets."
         )
 
     else:
 
-        resume_text = st.text_area(
-            "Paste your resume here",
-            height=250      
-        )
+        with st.spinner("Analyzing Resume..."):
 
-    if st.button("Analyze Resume"):
-
-        if resume_text.strip() == "":
-
-            st.warning("Please upload or paste your resume.")
-
-        else:
-
-            with st.spinner("Analyzing Resume..."):
-
+            try:
                 response = client.chat.completions.create(
-
                     model="llama-3.3-70b-versatile",
-
                     messages=[
-
                         {
+                            "role": "system",
+                            "content": """
+You are an expert Resume Reviewer.
 
-                            "role":"system",
+Analyze the resume and give:
 
-                            "content":"""
+1. Overall Score out of 100
+2. Strengths
+3. Weaknesses
+4. Missing Skills
+5. Suggestions to improve
 
-                            You are an expert Resume Reviewer.
-
-                            Analyze the resume and give:
-
-                            1. Overall Score out of 100
-                            2. Strengths
-                            3. Weaknesses
-                            4. Missing Skills
-                            5. Suggestions to improve
-
-                            Keep the response simple.
-
-                            """
-
+Keep the response simple.
+"""
                         },
-
                         {
-
-                            "role":"user",
-
-                            "content":resume_text
-
+                            "role": "user",
+                            "content": resume_text
                         }
-
                     ]
-
                 )
 
-            answer = response.choices[0].message.content
+                answer = response.choices[0].message.content
 
-            st.subheader("AI Resume Analysis")
+                st.subheader("AI Resume Analysis")
+                st.write(answer)
 
-            st.write(answer)
-
+            except Exception as e:
+                st.error(f"Error while analyzing resume: {e}")
+                
 elif page == "Interview Coach":
     st.title("Interview Coach")
 
@@ -837,6 +798,7 @@ elif page == "Certification Tracker":
             st.write(c)
 
 elif page == "AI Career Chatbot":
+
     st.title("AI Career Chatbot")
 
     question = st.text_input(
@@ -845,55 +807,57 @@ elif page == "AI Career Chatbot":
 
     if st.button("Get Answer"):
 
-        if question.strip()=="":
-
+        if question.strip() == "":
             st.warning("Please enter a question")
+
+        elif client is None:
+            st.error(
+                "Groq API Key not found. Add GROQ_API_KEY in Streamlit Secrets."
+            )
 
         else:
 
             with st.spinner("Thinking..."):
 
-                response = client.chat.completions.create(
+                try:
 
-                    model="llama-3.3-70b-versatile",
+                    response = client.chat.completions.create(
 
-                    messages=[
+                        model="llama-3.3-70b-versatile",
 
-                    {
-                        "role":"system",
+                        messages=[
 
-                        "content":"""
+                            {
+                                "role": "system",
 
-                        You are an AI Career Guidance Assistant.
+                                "content": """
+You are an AI Career Guidance Assistant.
 
-                        Help students with:
+Help students with:
+- Career advice
+- Resume tips
+- Interview preparation
+- Skill recommendations
+- Career roadmaps
+- Internship guidance
 
-                        - Career advice
-                        - Resume tips
-                        - Interview preparation
-                        - Skill recommendations
-                        - Career roadmaps
-                        - Internship guidance
+Keep answers simple and beginner friendly.
+"""
+                            },
 
-                        Keep answers simple and beginner friendly.
+                            {
+                                "role": "user",
+                                "content": question
+                            }
 
-                        """
-                    },
+                        ]
 
-                    {
+                    )
 
-                        "role":"user",
+                    answer = response.choices[0].message.content
 
-                        "content":question
+                    st.subheader("AI Response")
+                    st.write(answer)
 
-                    }
-
-                ]
-
-            )
-
-                answer = response.choices[0].message.content
-
-            st.subheader("AI Response")
-
-            st.write(answer)
+                except Exception as e:
+                    st.error(f"Error: {e}")
