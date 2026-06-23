@@ -16,6 +16,150 @@ except:
     
 st.sidebar.title("SIDEBAR")
 
+if st.session_state.logged_in:
+
+    page = st.sidebar.radio(
+
+        "Navigate",
+
+        [
+
+             "Profile",
+
+        "Dashboard",
+
+        "Skill Gap Analysis",
+
+        "Career Roadmap",
+
+        "Career Match",
+
+        "Resume Analyzer",
+
+        "Interview Coach",
+
+        "Progress Tracker",
+
+        "Job Description Analyzer",
+
+        "Project Recommendations",
+
+        "Certification Tracker",
+
+        "Learning Resources",
+
+        "AI Career Chatbot",
+
+        "Logout"
+
+       
+
+        ]
+
+    )
+
+else:
+
+    page = st.sidebar.radio(
+
+        "Navigate",
+
+        [
+
+        "Login",
+
+        "Register"
+
+        ]
+
+    )
+
+if page=="Register":
+
+    st.title("Register")
+
+    name=st.text_input("Name")
+
+    email=st.text_input("Email")
+
+    password=st.text_input(
+
+        "Password",
+
+        type="password"
+
+    )
+
+    if st.button("Register"):
+
+        success = register_user(
+
+            name,
+
+            email,
+
+            password
+
+        )
+
+        if success:
+
+            st.success("Registration Successful")
+
+        else:
+
+            st.error("Email already exists")
+
+elif page=="Login":
+
+    st.title("Login")
+
+    email=st.text_input("Email")
+
+    password=st.text_input(
+
+        "Password",
+
+        type="password"
+
+    )
+
+    if st.button("Login"):
+
+        user = login_user(
+
+            email,
+
+            password
+
+        )
+
+        if user:
+
+            st.session_state.logged_in=True
+
+            st.session_state.user=user
+
+            st.success("Login Successful")
+
+            st.rerun()
+
+        else:
+
+            st.error("Invalid Credentials")
+
+elif page=="Logout":
+
+    st.session_state.logged_in=False
+
+    st.session_state.user=None
+
+    st.success("Logged out")
+
+    st.rerun()
+
+
+
 page = st.sidebar.radio(
     "Navigate",[
         "Dashboard",
@@ -503,4 +647,65 @@ elif page == "Learning Resources":
             st.write(resource["description"])
             st.divider()
 
+elif page == "AI Career Chatbot":
+    st.title("AI Career Chatbot")
+
+    question = st.text_input(
+        "Ask a career question..."
+    )
+
+    if st.button("Get Answer"):
+
+        if question.strip()=="":
+
+            st.warning("Please enter a question")
+
+        else:
+
+            with st.spinner("Thinking..."):
+
+                response = client.chat.completions.create(
+
+                    model="llama-3.3-70b-versatile",
+
+                    messages=[
+
+                    {
+                        "role":"system",
+
+                        "content":"""
+
+                        You are an AI Career Guidance Assistant.
+
+                        Help students with:
+
+                        - Career advice
+                        - Resume tips
+                        - Interview preparation
+                        - Skill recommendations
+                        - Career roadmaps
+                        - Internship guidance
+
+                        Keep answers simple and beginner friendly.
+
+                        """
+                    },
+
+                    {
+
+                        "role":"user",
+
+                        "content":question
+
+                    }
+
+                ]
+
+            )
+
+                answer = response.choices[0].message.content
+
+            st.subheader("AI Response")
+
+            st.write(answer)
     
