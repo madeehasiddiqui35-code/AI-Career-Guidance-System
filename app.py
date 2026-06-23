@@ -457,39 +457,56 @@ elif page == "Career Match":
             st.write(advice)
      
 
-if st.button("Analyze Resume"):
+elif page == "Resume Analyzer":
+    st.title("Resume Analyzer")
 
-    if resume_text.strip() == "":
-        st.warning("Please upload or paste your resume.")
+    st.write("Paste your resume or upload a file")
 
-    elif client is None:
-        st.error(
-            "Groq API Key not found. Add GROQ_API_KEY in Streamlit Secrets."
-        )
+    uploaded_file = st.file_uploader("Upload Resume", type=["pdf"])
+
+    resume_text = ""
+
+    if uploaded_file is not None:
+
+        if uploaded_file.type == "application/pdf":
+            reader = PdfReader(uploaded_file)
+
+            for page in reader.pages:
+                text = page.extract_text()
+                if text:
+                    resume_text += text
+
+        elif uploaded_file.type == "text/plain":
+            resume_text = uploaded_file.read().decode("utf-8")
 
     else:
+        resume_text = st.text_area("Paste your resume here", height=250)
+
+    # AUTO RUN ANALYSIS (no button)
+    if resume_text.strip():
 
         with st.spinner("Analyzing Resume..."):
 
-            try:
+            if client is None:
+                st.error("Groq API Key not found. Add GROQ_API_KEY in Streamlit Secrets.")
+            else:
                 response = client.chat.completions.create(
                     model="llama-3.3-70b-versatile",
                     messages=[
                         {
                             "role": "system",
                             "content": """
-You are an expert Resume Reviewer.
+                            You are an expert Resume Reviewer.
 
-Analyze the resume and give:
+                            Analyze the resume and give:
+                            1. Overall Score out of 100
+                            2. Strengths
+                            3. Weaknesses
+                            4. Missing Skills
+                            5. Suggestions to improve
 
-1. Overall Score out of 100
-2. Strengths
-3. Weaknesses
-4. Missing Skills
-5. Suggestions to improve
-
-Keep the response simple.
-"""
+                            Keep the response simple.
+                            """
                         },
                         {
                             "role": "user",
@@ -502,9 +519,6 @@ Keep the response simple.
 
                 st.subheader("AI Resume Analysis")
                 st.write(answer)
-
-            except Exception as e:
-                st.error(f"Error while analyzing resume: {e}")
                 
 elif page == "Interview Coach":
     st.title("Interview Coach")
