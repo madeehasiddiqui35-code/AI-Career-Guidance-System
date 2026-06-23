@@ -1,19 +1,100 @@
 import streamlit as st
+from groq import Groq
 from PyPDF2 import PdfReader
+from auth import register_user, login_user
 
-try:
-    from groq import Groq
+if "logged_in" not in st.session_state:
 
-    if "GROQ_API_KEY" in st.secrets:
-        client = Groq(
-            api_key=st.secrets["GROQ_API_KEY"]
-        )
-    else:
-        client = None
+    st.session_state.logged_in=False
 
-except:
-    client = None
-    
+client = Groq(
+    api_key = st.secrets["GROQ_API_KEY"]
+)
+
+st.set_page_config(
+    page_title="AI Career Guidance System",
+    page_icon="🎯",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+st.markdown("""
+<style>
+
+/* Chocolate brown app background */
+.stApp{
+    background-color:#2B1B17 !important;
+}
+/* Sidebar */
+section[data-testid="stSidebar"]{
+    background-color:#3E2723 !important;
+}
+
+/* Sidebar text */
+section[data-testid="stSidebar"] *{
+    color:white !important;
+}
+
+/* Main text */
+h1,h2,h3,h4,h5,h6,p,label,span{
+    color:white !important;
+}
+
+/* Text Input */
+.stTextInput input{
+    background-color:#D7CCC8 !important;
+    color:black !important;
+
+    border-radius:10px;
+}
+
+/* Text Area */
+.stTextArea textarea{
+    background-color:#D7CCC8 !important;
+    color:black !important;
+
+    border-radius:10px;
+}
+
+/* Number Input */
+.stNumberInput input{
+    background-color:#D7CCC8 !important;
+    color:black !important;
+
+    border-radius:10px;
+}
+
+/* Select Box */
+div[data-baseweb="select"] > div{
+    background-color:#D7CCC8 !important;
+
+    color:black !important;
+
+    border-radius:10px;
+}
+
+/* Buttons */
+.stButton > button{
+    background-color:#8D6E63 !important;
+
+    color:white !important;
+
+    border:none;
+
+    border-radius:10px;
+}
+
+.stButton > button:hover{
+    background-color:#A1887F !important;
+}
+
+/* Progress Bar */
+.stProgress > div > div{
+    background-color:#D7CCC8 !important;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
 st.sidebar.title("SIDEBAR")
 
 if st.session_state.logged_in:
@@ -158,19 +239,6 @@ elif page=="Logout":
 
     st.rerun()
 
-
-
-page = st.sidebar.radio(
-    "Navigate",[
-        "Dashboard",
-        "Skill Gap Analysis",
-        "Career Roadmap",
-        "Resume Analyzer",
-        "Interview Coach",
-         "Certification Tracker",
-        "Learning Resources"
-   ]
-    )
 
 if page == "Dashboard":
     st.title("Dashboard")  
@@ -328,6 +396,20 @@ if page == "Dashboard":
                 st.write(skill)
         else:
             st.success("No major skill gaps detected")
+
+elif page == "Profile":
+
+    st.title("My Profile")
+
+    user = st.session_state.get("user", ("Not Available", "Not Available"))
+
+    st.write("Name:", user[0])
+    st.write("Email:", user[1])
+
+    st.write("Career Goal:", st.session_state.get("goal", "Not Selected"))
+
+    st.write("Internship Score:", st.session_state.get("score", 0))
+
 elif page == "Skill Gap Analysis":
     st.title("Skill Gap Analysis")
 
@@ -357,22 +439,110 @@ elif page == "Career Roadmap":
     else:
         st.write("You are internship-ready")
 
-elif page == "Resume Analyzer":
+elif page == "Career Match":
+    st.title("Career Match")
 
+    skills_list = st.session_state.get("skills_list", [])
+    career_skills = {
+    "Data Science": ["python", "sql", "machine learning", "statistics", "data visualization"],
+    "AI Engineer": ["python", "machine learning", "deep learning", "tensorflow"],
+    "Software Engineer": ["python", "data structures", "algorithms", "git"],
+    "Web Developer": ["html", "css", "javascript", "react"]
+}
+    results = {}
+
+    for role, required_skills in career_skills.items():
+        matched = 0
+
+        for skill in required_skills:
+            if skill in skills_list:
+                matched+=1
+
+        score = int((matched/ len(required_skills))*100)
+        results[role] = score
+
+    st.subheader("Your Career Matches")
+
+    sorted_roles = sorted(results.items(), key=lambda x: x[1], reverse=True)
+
+    for role, score in sorted_roles:
+        st.write(f"{role} → {score}% match")
+        st.progress(score / 100)
+
+        required_skills= career_skills[role]
+
+        matched_skills = []
+        missing_skills=[]
+
+        for s in required_skills:
+            if s in skills_list:
+                matched_skills.append(s)
+            else:
+                missing_skills.append(s)
+
+        st.subheader("Matched Skills: ")
+
+        for s in matched_skills:
+            st.write(s)
+
+        st.subheader("Missing Skills:")
+
+        for s in missing_skills:
+            st.write(s)
+
+        st.divider()
+
+    if results:
+        best_role = max(results, key=results.get)
+        best_score = results[best_role]
+
+        career_advice = {
+                    "Data Science": ["Learn SQL and Database Management",
+                "Build Data Analysis and Machine Learning Projects",
+                "Apply for Data Science Internships"],
+
+                    "AI Engineer": ["Learn Deep Learning and Neural Networks",
+                    "Build AI Projects using TensorFlow or PyTorch",
+                    "Apply for AI/ML Internships"],
+
+                    "Software Engineer": ["Practice Data Structures and Algorithms",
+                    "Build Full-Stack or Backend Projects",
+                    "Apply for Software Development Internships"],
+
+                    "Web Developer": [        
+                    "Master HTML, CSS, JavaScript, and React",
+                    "Build Responsive Web Applications",
+                    "Create a Portfolio and Apply for Web Development Internships"
+        ]
+                }
+
+        st.subheader("Recommended Career")
+        st.write(best_role)
+
+        st.write("Match Score:", best_score, "%")
+
+        st.subheader("Next Steps")
+
+        for advice in career_advice[best_role]:
+            st.write(advice)
+     
+
+elif page == "Resume Analyzer":
     st.title("Resume Analyzer")
 
     st.write("Paste your resume or upload a file")
 
-    uploaded_file = st.file_uploader(
-        "Upload Resume",
-        type=["pdf"]
-    )
+    uploaded_file = st.file_uploader("Upload Resume", type=["pdf"])
 
     resume_text = ""
-
+    
     if uploaded_file is not None:
 
-        if uploaded_file.type == "application/pdf":
+        if uploaded_file.type == "text/plain":
+
+            resume_text = uploaded_file.read().decode("utf-8")
+
+        elif uploaded_file.type == "application/pdf":
 
             reader = PdfReader(uploaded_file)
 
@@ -381,7 +551,6 @@ elif page == "Resume Analyzer":
                 text = page.extract_text()
 
                 if text:
-
                     resume_text += text
 
         st.text_area(
@@ -394,76 +563,64 @@ elif page == "Resume Analyzer":
 
         resume_text = st.text_area(
             "Paste your resume here",
-            height=250
+            height=250      
         )
 
     if st.button("Analyze Resume"):
 
         if resume_text.strip() == "":
 
-            st.warning(
-                "Please upload or paste your resume."
-            )
+            st.warning("Please upload or paste your resume.")
 
         else:
 
             with st.spinner("Analyzing Resume..."):
 
-                if client is None:
+                response = client.chat.completions.create(
 
-                    st.error(
-                        "Groq API Key not found. Please add GROQ_API_KEY in Streamlit Secrets."
-                    )
+                    model="llama-3.3-70b-versatile",
 
-                else:
+                    messages=[
 
-                    response = client.chat.completions.create(
+                        {
 
-                        model="llama-3.3-70b-versatile",
+                            "role":"system",
 
-                        messages=[
+                            "content":"""
 
-                            {
+                            You are an expert Resume Reviewer.
 
-                                "role":"system",
+                            Analyze the resume and give:
 
-                                "content":"""
+                            1. Overall Score out of 100
+                            2. Strengths
+                            3. Weaknesses
+                            4. Missing Skills
+                            5. Suggestions to improve
 
-You are an expert Resume Reviewer.
+                            Keep the response simple.
 
-Analyze the resume and give:
+                            """
 
-1. Overall Score out of 100
-2. Strengths
-3. Weaknesses
-4. Missing Skills
-5. Suggestions to improve
+                        },
 
-Keep the response simple.
+                        {
 
-"""
+                            "role":"user",
 
-                            },
+                            "content":resume_text
 
-                            {
+                        }
 
-                                "role":"user",
+                    ]
 
-                                "content":resume_text
+                )
 
-                            }
+            answer = response.choices[0].message.content
 
-                        ]
+            st.subheader("AI Resume Analysis")
 
-                    )
-
-                    answer = response.choices[0].message.content
-
-                    st.subheader(
-                        "AI Resume Analysis"
-                    )
-
-                    st.write(answer)
+            st.write(answer)
 
 elif page == "Interview Coach":
     st.title("Interview Coach")
@@ -502,59 +659,114 @@ elif page == "Interview Coach":
         for q in questions[role]:
             st.write(q)
 
-elif page == "Certification Tracker":
-    st.title("Certification Tracker")
+elif page == "Progress Tracker":
+    st.title("Progress Tracker")
+
+    skills_list = st.session_state.get("skills_list",[])
+    score = st.session_state.get("score",0)
+    goal = st.session_state.get("goal","")
+
+    total_skills = [
+    "python",
+    "sql",
+    "machine learning",
+    "github",
+    "projects"
+]    
+    matched_skills = 0
+
+    for skill in total_skills:
+        if skill in skills_list:
+            matched_skills += 1
+
+    progress = matched_skills / len(total_skills)
+
+    st.subheader("Skill Progress")
+    st.progress(progress)
+    st.write(f"Progress: {int(progress*100)}%")
+    
+    st.subheader("Internship readiness Score")
+    st.write(score)
+
+    if score >= 80:
+        st.success("Excellent Progress")
+    elif score >= 60:
+        st.warning("Good Progress")
+    else:
+        st.error("Needs Improvement")
+
+elif page == "Job Description Analyzer":
+    st.title("Job Description Analyzer")
+   
+    descriptive_text= st.text_area("Paste your job description here")
+
+    skills_list = st.session_state.get("skills_list",[])
+
+    if st.button("Analyze Job Description"):
+        job_text = descriptive_text.lower()
+
+        missing_skills=[]
+
+        job_skills = [
+            "python",
+            "sql",
+            "git",
+            "machine learning",
+            "docker"
+        ]
+        
+        for s in job_skills:
+            if s in job_text and s not in skills_list:
+                missing_skills.append(s)
+            
+        st.subheader("Missing Skills")
+
+        if missing_skills:
+            for s in missing_skills:
+                st.write(f" {s}")
+
+        else:
+            st.success("You already have all the detected skills!")
+
+elif page == "Project Recommendations":
+    st.title("Project Recommendations")
 
     goal = st.session_state.get("goal", "")
-
-    certification = st.text_input("Enter completed certifications")
     
-    certification_list = [
-        c.strip().lower()
-        for c in certification.split(",")
-        if c.strip()
-    ]
-        
-    st.subheader("Completed Certifications")
-
-    for cert in certification_list:
-        st.write(cert)
-
-    st.write("Total Certifications:", len(certification_list))
-
-    recommended_certs = {
+    if not goal:
+        st.warning("Please complete Dashboard first.")
+    else:
+        projects = {
         "Data Science": [
-            "google data analytics",
-            "ibm data science",
-            "microsoft data analyst"
-        ],
+        "Student Performance Analysis",
+        "Sales Dashboard",
+        "House Price Prediction"
+    ],
 
-        "AI Engineer": [
-            "tensorflow developer",
-            "deep learning specialization",
-            "generative ai certification"
-        ],
+    "AI Engineer": [
+        "Chatbot",
+        "Image Classifier",
+        "Resume Screening AI"
+    ],
 
-        "Software Engineer": [
-            "aws cloud practitioner",
-            "github foundations",
-            "oracle java certification"
-        ],
+    "Software Engineer": [
+        "Library Management System",
+        "Expense Tracker",
+        "Student Portal"
+    ],
 
-        "Web Developer": [
-            "meta front-end developer",
-            "javascript certification",
-            "responsive web design"
-        ]
-    }    
+    "Web Developer": [
+        "E-commerce Website",
+        "Portfolio Website",
+        "Task Manager App"
+    ]
+}
 
-    goal_recommendations = recommended_certs.get(goal, [])
+        recommended_projects = projects.get(goal, [])
+        st.subheader(f"Projects for {goal}")
 
-    st.subheader("Recommended Certifications")
-
-    for c in goal_recommendations:
-        if c not in certification_list:
-            st.write(c)
+        for r in recommended_projects:
+            st.write(r)
 
 elif page == "Learning Resources":
     st.title("Learning Resources")
@@ -647,6 +859,60 @@ elif page == "Learning Resources":
             st.write(resource["description"])
             st.divider()
 
+elif page == "Certification Tracker":
+    st.title("Certification Tracker")
+
+    goal = st.session_state.get("goal", "")
+
+    certification = st.text_input("Enter completed certifications")
+    
+    certification_list = [
+        c.strip().lower()
+        for c in certification.split(",")
+        if c.strip()
+    ]
+        
+    st.subheader("Completed Certifications")
+
+    for cert in certification_list:
+        st.write(cert)
+
+    st.write("Total Certifications:", len(certification_list))
+
+    recommended_certs = {
+        "Data Science": [
+            "google data analytics",
+            "ibm data science",
+            "microsoft data analyst"
+        ],
+
+        "AI Engineer": [
+            "tensorflow developer",
+            "deep learning specialization",
+            "generative ai certification"
+        ],
+
+        "Software Engineer": [
+            "aws cloud practitioner",
+            "github foundations",
+            "oracle java certification"
+        ],
+
+        "Web Developer": [
+            "meta front-end developer",
+            "javascript certification",
+            "responsive web design"
+        ]
+    }    
+
+    goal_recommendations = recommended_certs.get(goal, [])
+
+    st.subheader("Recommended Certifications")
+
+    for c in goal_recommendations:
+        if c not in certification_list:
+            st.write(c)
+
 elif page == "AI Career Chatbot":
     st.title("AI Career Chatbot")
 
@@ -708,4 +974,3 @@ elif page == "AI Career Chatbot":
             st.subheader("AI Response")
 
             st.write(answer)
-    
