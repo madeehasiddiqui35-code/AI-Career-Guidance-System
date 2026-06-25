@@ -105,7 +105,7 @@ if st.session_state.logged_in:
         "Navigate",
 
         [
-
+            "Home",
              "Profile",
 
         "Dashboard",
@@ -147,7 +147,7 @@ else:
         "Navigate",
 
         [
-
+        "Home",
         "Login",
 
         "Register"
@@ -240,7 +240,63 @@ elif page=="Logout":
 
     st.rerun()
 
+if page == "Home":
 
+    st.title("🎯 AI Career Guidance System")
+
+    st.markdown("""
+    ## Welcome!
+
+    The **AI Career Guidance System** helps students evaluate their skills,
+    discover suitable career paths, and prepare for internships and jobs using AI.
+
+    ---
+    """)
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.subheader("✨ Features")
+
+        st.write("📊 Dashboard")
+        st.write("🧠 Skill Gap Analysis")
+        st.write("🛣 Career Roadmap")
+        st.write("💼 Career Match")
+        st.write("📄 Resume Analyzer")
+        st.write("🎤 Interview Coach")
+
+    with col2:
+        st.subheader("More Tools")
+
+        st.write("📈 Progress Tracker")
+        st.write("📑 Job Description Analyzer")
+        st.write("💡 Project Recommendations")
+        st.write("🏆 Certification Tracker")
+        st.write("📚 Learning Resources")
+        st.write("🤖 AI Career Chatbot")
+
+    st.divider()
+
+    st.subheader("Why use this platform?")
+
+    st.success("""
+    ✔ Personalized career guidance
+
+    ✔ AI-powered resume analysis
+
+    ✔ Career matching based on skills
+
+    ✔ Learning recommendations
+
+    ✔ Interview preparation
+
+    ✔ Internship readiness score
+    """)
+
+    st.info(
+        "👉 Register or Login from the sidebar to start using the system."
+    )
+    
 if page == "Dashboard":
     st.title("Dashboard")  
     st.subheader("Student Information")  
