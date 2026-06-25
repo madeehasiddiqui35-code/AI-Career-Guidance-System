@@ -32,6 +32,7 @@ st.markdown("""
 .stApp{
     background-color:#2B1B17 !important;
 }
+
 /* Sidebar */
 section[data-testid="stSidebar"]{
     background-color:#3E2723 !important;
@@ -51,7 +52,6 @@ h1,h2,h3,h4,h5,h6,p,label,span{
 .stTextInput input{
     background-color:#D7CCC8 !important;
     color:black !important;
-
     border-radius:10px;
 }
 
@@ -59,7 +59,6 @@ h1,h2,h3,h4,h5,h6,p,label,span{
 .stTextArea textarea{
     background-color:#D7CCC8 !important;
     color:black !important;
-
     border-radius:10px;
 }
 
@@ -67,27 +66,21 @@ h1,h2,h3,h4,h5,h6,p,label,span{
 .stNumberInput input{
     background-color:#D7CCC8 !important;
     color:black !important;
-
     border-radius:10px;
 }
 
 /* Select Box */
 div[data-baseweb="select"] > div{
     background-color:#D7CCC8 !important;
-
     color:black !important;
-
     border-radius:10px;
 }
 
 /* Buttons */
 .stButton > button{
     background-color:#8D6E63 !important;
-
     color:white !important;
-
     border:none;
-
     border-radius:10px;
 }
 
